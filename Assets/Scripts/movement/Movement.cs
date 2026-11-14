@@ -1,11 +1,15 @@
+using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class Movement : MonoBehaviour
 {
     [SerializeField] float speed = 5f;
+    [SerializeField] float RunSpeed = 8f;
+
     PlayerInput playerInput;
     InputAction moveAction;
+    InputAction SprintActhion;
     Animator animator;
 
 
@@ -13,11 +17,13 @@ public class Movement : MonoBehaviour
     {
         playerInput = GetComponent<PlayerInput>();
         moveAction = playerInput.actions.FindAction("Move");
+        SprintActhion = playerInput.actions.FindAction("Sprint");
+
         animator = GetComponent<Animator>();
         
     }
 
-    // Update is called once per frame
+    
     void Update()
     {
         movePlayer();
@@ -27,11 +33,18 @@ public class Movement : MonoBehaviour
         Vector2 derection = moveAction.ReadValue<Vector2>();
         Vector3 move = new Vector3(derection.x, 0, derection.y);
 
-        transform.position += move * speed * Time.deltaTime;
+        bool isMoving = move.magnitude > 0.1f;
+        bool isRunning = SprintActhion.IsPressed() && isMoving;
+
+        float currentSpeed = isRunning ? RunSpeed : speed;
+        
+
+        transform.position += move * currentSpeed * Time.deltaTime;
 
         if(animator != null)
         {
             animator.SetFloat("Speed",move.magnitude);
+            animator.SetBool("isRunning",isRunning);
         }
 
         if(move != Vector3.zero)
